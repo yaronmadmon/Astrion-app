@@ -36,14 +36,14 @@ export default function Home() {
           `• Simple monthly reports\n\n` +
           `Ready to build this app?`
         );
-      } else if (spokenText.includes('meal') || spokenText.includes('food') || spokenText.includes('recipe') || spokenText.includes('cooking') || spokenText.includes('grocery')) {
+      } else if (spokenText.includes('meal') || spokenText.includes('food') || spokenText.includes('recipe') || spokenText.includes('cooking') || spokenText.includes('grocery') || spokenText.includes('housewife')) {
         setPreview(
-          `Here's your Family Meal Planner App:\n\n` +
-          `• Weekly meal calendar\n` +
-          `• Recipe library with photos\n` +
-          `• Auto-generated grocery list\n` +
-          `• Shopping checklist\n` +
-          `• Nutrition summary\n\n` +
+          `Here's your Housewife Helper App:\n\n` +
+          `• Daily meal planner\n` +
+          `• Grocery shopping list\n` +
+          `• Quick recipe ideas\n` +
+          `• Cleaning schedule\n` +
+          `• Family task reminders\n\n` +
           `Ready to build this app?`
         );
       } else if (spokenText.includes('task') || spokenText.includes('todo') || spokenText.includes('project') || spokenText.includes('work')) {
@@ -60,9 +60,9 @@ export default function Home() {
         setPreview(
           `I heard you! I can currently build:\n\n` +
           `• Real estate / tenant trackers\n` +
-          `• Family meal planners\n` +
+          `• Housewife helper apps\n` +
           `• Personal task managers\n\n` +
-          `Try saying something like "build me a real estate app" or "meal planner for my family"`
+          `Try saying something like "build me a real estate app" or "housewife helper"`
         );
       }
     };
@@ -79,11 +79,11 @@ export default function Home() {
     setBuilding(true);
     setDeployedUrl('');
 
-    // Simulate build process (5 seconds)
     setTimeout(() => {
       setBuilding(false);
-      setDeployedUrl('https://astrion-demo-' + Date.now() + '.vercel.app');
-    }, 5000);
+      const randomId = Math.random().toString(36).substring(2, 8);
+      setDeployedUrl(`https://astrion-${randomId}.vercel.app`);
+    }, 6000);
   };
 
   return (
@@ -151,7 +151,7 @@ export default function Home() {
                 boxShadow: building ? 'none' : '0 6px 20px rgba(0,170,0,0.3)',
               }}
             >
-              {building ? 'Building your app... (5 seconds)' : 'Build It Now!'}
+              {building ? 'Building your app... (6 seconds)' : 'Build It Now!'}
             </button>
           </div>
 
