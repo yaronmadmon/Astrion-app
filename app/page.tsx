@@ -30,10 +30,10 @@ export default function Home() {
         setPreview(
           `Here's your Real Estate Tenant Tracker App:\n\n` +
           `• Dashboard with list of tenants\n` +
-          `• Add / edit tenant details (name, contact, lease dates)\n` +
+          `• Add / edit tenant details\n` +
           `• Rent due dates and payment tracking\n` +
-          `• Automatic email reminders for late payments\n` +
-          `• Simple monthly reports\n\n` +
+          `• Automatic email reminders\n` +
+          `• Simple reports\n\n` +
           `Ready to build this app?`
         );
       } else if (spokenText.includes('meal') || spokenText.includes('food') || spokenText.includes('recipe') || spokenText.includes('cooking') || spokenText.includes('grocery') || spokenText.includes('housewife')) {
@@ -43,26 +43,24 @@ export default function Home() {
           `• Grocery shopping list\n` +
           `• Quick recipe ideas\n` +
           `• Cleaning schedule\n` +
-          `• Family task reminders\n\n` +
+          `• Family reminders\n\n` +
           `Ready to build this app?`
         );
-      } else if (spokenText.includes('task') || spokenText.includes('todo') || spokenText.includes('project') || spokenText.includes('work')) {
+      } else if (spokenText.includes('task') || spokenText.includes('todo') || spokenText.includes('project')) {
         setPreview(
           `Here's your Personal Task Manager App:\n\n` +
-          `• Daily / weekly task list\n` +
-          `• Priority levels and due dates\n` +
-          `• Progress tracking\n` +
-          `• Reminders and notifications\n` +
-          `• Simple analytics\n\n` +
+          `• Daily task list\n` +
+          `• Priority levels\n` +
+          `• Due dates and reminders\n` +
+          `• Progress tracking\n\n` +
           `Ready to build this app?`
         );
       } else {
         setPreview(
-          `I heard you! I can currently build:\n\n` +
-          `• Real estate / tenant trackers\n` +
-          `• Housewife helper apps\n` +
-          `• Personal task managers\n\n` +
-          `Try saying something like "build me a real estate app" or "housewife helper"`
+          `I heard you! Try saying:\n\n` +
+          `• "real estate tenant tracker"\n` +
+          `• "housewife helper app"\n` +
+          `• "personal task manager"`
         );
       }
     };
@@ -81,9 +79,9 @@ export default function Home() {
 
     setTimeout(() => {
       setBuilding(false);
-      const randomId = Math.random().toString(36).substring(2, 8);
+      const randomId = Math.random().toString(36).substring(2, 10);
       setDeployedUrl(`https://astrion-${randomId}.vercel.app`);
-    }, 6000);
+    }, 7000);
   };
 
   return (
@@ -151,7 +149,7 @@ export default function Home() {
                 boxShadow: building ? 'none' : '0 6px 20px rgba(0,170,0,0.3)',
               }}
             >
-              {building ? 'Building your app... (6 seconds)' : 'Build It Now!'}
+              {building ? 'Building your app... (7 seconds)' : 'Build It Now!'}
             </button>
           </div>
 
