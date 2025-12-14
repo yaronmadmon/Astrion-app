@@ -30,10 +30,10 @@ export default function Home() {
         setPreview(
           `Here's your Real Estate Tenant Tracker App:\n\n` +
           `• Dashboard with list of tenants\n` +
-          `• Add / edit tenant details\n` +
+          `• Add / edit tenant details (name, contact, lease dates)\n` +
           `• Rent due dates and payment tracking\n` +
-          `• Automatic email reminders\n` +
-          `• Simple reports\n\n` +
+          `• Automatic email reminders for late payments\n` +
+          `• Simple monthly reports\n\n` +
           `Ready to build this app?`
         );
       } else if (spokenText.includes('meal') || spokenText.includes('food') || spokenText.includes('recipe') || spokenText.includes('cooking') || spokenText.includes('grocery') || spokenText.includes('housewife')) {
@@ -57,10 +57,11 @@ export default function Home() {
         );
       } else {
         setPreview(
-          `I heard you! Try saying:\n\n` +
-          `• "real estate tenant tracker"\n` +
-          `• "housewife helper app"\n` +
-          `• "personal task manager"`
+          `I heard you! I can currently build:\n\n` +
+          `• Real estate / tenant trackers\n` +
+          `• Housewife helper apps\n` +
+          `• Personal task managers\n\n` +
+          `Try saying something like "build me a real estate app" or "housewife helper"`
         );
       }
     };
