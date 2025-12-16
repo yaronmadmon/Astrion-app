@@ -1,8 +1,10 @@
-export default function HomePage() {
+import RealEstateApp from "@/lib/generators/realEstateApp";
+
+export default function Page() {
   return (
     <main style={{ padding: 40 }}>
-      <h1>Astrion</h1>
-      <p>App Factory is running.</p>
+      <h1>Generated App</h1>
+      <RealEstateApp />
     </main>
   );
 }
