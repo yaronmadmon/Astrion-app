@@ -1,0 +1,4 @@
+{
+  "genericApp": "../generators/genericApp.js",
+  "simpleLanding": "../generators/simpleLanding.js"
+}

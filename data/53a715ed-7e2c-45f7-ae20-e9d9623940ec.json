@@ -1,0 +1,34 @@
+{
+  "name": "Generated App",
+  "description": "With me an app for a household wife",
+  "pages": [
+    {
+      "title": "Dashboard",
+      "components": [
+        {
+          "type": "stat",
+          "label": "Total Rent",
+          "value": "$24,000"
+        },
+        {
+          "type": "stat",
+          "label": "Occupied Units",
+          "value": "8 / 10"
+        }
+      ]
+    },
+    {
+      "title": "Tenants",
+      "components": [
+        {
+          "type": "list",
+          "items": [
+            "John Smith",
+            "Sarah Cohen",
+            "Mike Johnson"
+          ]
+        }
+      ]
+    }
+  ]
+}

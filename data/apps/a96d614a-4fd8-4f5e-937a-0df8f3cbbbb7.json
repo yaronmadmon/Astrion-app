@@ -1,0 +1,19 @@
+{
+  "id": "a96d614a-4fd8-4f5e-937a-0df8f3cbbbb7",
+  "name": "Tenants App",
+  "state": {
+    "tenants": [
+      {
+        "id": "t1",
+        "name": "John Smith",
+        "balance": 0
+      },
+      {
+        "id": "t2",
+        "name": "Sarah Cohen",
+        "balance": 250
+      }
+    ]
+  },
+  "createdAt": "2025-12-25T07:13:25.717Z"
+}
