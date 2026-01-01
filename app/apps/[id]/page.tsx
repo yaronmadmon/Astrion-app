@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useMemo, useState, useEffect } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import type { AppRecord } from "@/types/appRecord";
 
 export default function AppPreviewPage() {
   const params = useParams();
-  const [activeTab, setActiveTab] = useState("Dashboard"); // Controls navigation
+  const searchParams = useSearchParams();
+  const tab = (searchParams.get("tab") || "dashboard").toLowerCase();
+
+  const [record, setRecord] = useState<AppRecord | null>(null);
   const [prompt, setPrompt] = useState("");
 
   // Listen for the voice command from the Layout
@@ -17,59 +21,71 @@ export default function AppPreviewPage() {
     return () => window.removeEventListener("voice-command", handleVoiceUpdate);
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const res = await fetch(`/api/apps/${params.id}`);
+        if (!res.ok) return;
+        const json = (await res.json()) as AppRecord;
+        if (!cancelled) setRecord(json);
+      } catch {
+        // ignore
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [params.id]);
+
+  const activePage = useMemo(() => {
+    const pages = record?.config?.pages ?? [];
+    const byId = pages.find((p) => p.id.toLowerCase() === tab);
+    if (byId) return byId;
+    const byTitle = pages.find((p) => p.title.toLowerCase() === tab);
+    return byTitle ?? pages[0] ?? null;
+  }, [record, tab]);
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "25px" }}>
-      {/* 1. TOP NAVIGATION TABS */}
-      <div style={{ display: "flex", gap: "30px", borderBottom: "1px solid #1e293b" }}>
-        {["Dashboard", "Analytics", "Settings"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={{
-              background: "none", border: "none", padding: "12px 0", cursor: "pointer",
-              color: activeTab === tab ? "#38bdf8" : "#94a3b8",
-              borderBottom: activeTab === tab ? "2px solid #38bdf8" : "transparent",
-              fontWeight: activeTab === tab ? "bold" : "normal", transition: "0.2s"
-            }}
-          >
-            {tab}
-          </button>
-        ))}
+    <div className="space-y-6">
+      <div>
+        <div className="text-xs font-semibold tracking-widest text-slate-500">
+          {record?.config?.name ?? "Loading..."}
+        </div>
+        <h1 className="mt-2 text-2xl font-semibold text-slate-100">
+          {activePage?.title ?? "App"}
+        </h1>
+        <div className="mt-1 text-xs text-slate-500">App ID: {String(params.id)}</div>
       </div>
 
-      {/* 2. DYNAMIC CONTENT AREA */}
-      {activeTab === "Dashboard" && (
-        <div style={{ animation: "fadeIn 0.3s ease-in" }}>
-          <h1 style={{ fontSize: "28px", color: "white", marginBottom: "10px" }}>Project Dashboard</h1>
-          <p style={{ color: "#94a3b8", marginBottom: "20px" }}>App ID: {params.id}</p>
-          
-          <div style={{ background: "#0a0f1a", padding: "24px", borderRadius: "16px", border: "1px solid #1e293b" }}>
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Refine your app..."
-              style={{ width: "100%", height: "80px", background: "#05070a", color: "white", padding: "15px", borderRadius: "10px", border: "1px solid #334155", resize: "none" }}
-            />
-            <button style={{ marginTop: "10px", width: "100%", padding: "10px", background: "#38bdf8", borderRadius: "8px", border: "none", fontWeight: "bold", cursor: "pointer" }}>
-              Apply Changes
-            </button>
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
+        {activePage ? (
+          <div className="text-sm text-slate-300">
+            <div className="font-medium text-slate-100">Page type</div>
+            <div className="mt-1 text-slate-400">{activePage.type}</div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="text-sm text-slate-500">No pages found in config.</div>
+        )}
+      </div>
 
-      {activeTab === "Analytics" && (
-        <div style={{ padding: "40px", textAlign: "center", color: "#475569", border: "2px dashed #1e293b", borderRadius: "16px" }}>
-          <h2 style={{ color: "white" }}>Analytics View</h2>
-          <p>Chart data for {params.id} will appear here.</p>
-        </div>
-      )}
-
-      {activeTab === "Settings" && (
-        <div style={{ padding: "40px", color: "white" }}>
-          <h2>App Settings</h2>
-          <p style={{ color: "#94a3b8" }}>Configure deployment and API keys for this instance.</p>
-        </div>
-      )}
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
+        <div className="text-sm font-semibold text-slate-100">Refine by voice or text</div>
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Say or type changes (MVP: stored locally, not applied yet)"
+          className="mt-3 h-24 w-full resize-none rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 outline-none focus:ring-2 focus:ring-sky-500/40"
+        />
+        <button
+          className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-sky-400 px-4 py-2.5 text-sm font-semibold text-slate-950 disabled:opacity-50"
+          disabled
+          title="Coming next: apply edits via Foreman commands"
+        >
+          Apply Changes (next)
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,48 +1,56 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Sidebar from "../../components/shell/Sidebar";
+import VoiceInput from "@/app/components/shell/VoiceInput";
+import type { AppRecord } from "@/types/appRecord";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const [listening, setListening] = useState(false);
+  const [record, setRecord] = useState<AppRecord | null>(null);
 
-  const startListening = () => {
-    if (!("webkitSpeechRecognition" in window)) {
-      alert("Browser not supported");
-      return;
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const parts = window.location.pathname.split("/");
+        const id = parts[parts.indexOf("apps") + 1];
+        const res = await fetch(`/api/apps/${id}`);
+        if (!res.ok) return;
+        const json = (await res.json()) as AppRecord;
+        if (!cancelled) setRecord(json);
+      } catch {
+        // ignore
+      }
     }
-    // @ts-ignore
-    const recognition = new window.webkitSpeechRecognition();
-    recognition.onstart = () => setListening(true);
-    recognition.onend = () => setListening(false);
-    recognition.onresult = (event: any) => {
-      const text = event.results[0][0].transcript;
-      window.dispatchEvent(new CustomEvent("voice-command", { detail: { text } }));
+    load();
+    return () => {
+      cancelled = true;
     };
-    recognition.start();
-  };
+  }, []);
+
+  const sidebarItems = useMemo(() => {
+    const pages = record?.config?.pages ?? [];
+    return pages.length > 0 ? pages.map((p) => p.title) : ["Dashboard", "Settings"];
+  }, [record]);
 
   return (
-    <div style={{ display: "flex", height: "100vh", background: "#05070a", color: "white" }}>
-      <aside style={{ width: "260px", background: "#0a0f1a", padding: "30px 20px", borderRight: "1px solid #1e293b" }}>
-        <div style={{ fontWeight: "bold", fontSize: "22px", color: "#38bdf8", marginBottom: "40px" }}>ASTRION</div>
-        <Sidebar items={["Dashboard", "Analytics", "Settings"]} />
+    <div className="flex min-h-dvh">
+      <aside className="w-72 border-r border-slate-800 bg-slate-950/40 px-5 py-6">
+        <div className="text-lg font-semibold tracking-tight text-sky-300">
+          ASTRION
+        </div>
+        <div className="mt-6">
+          <Sidebar items={sidebarItems} />
+        </div>
       </aside>
 
-      <main style={{ flex: 1, padding: "40px", position: "relative", overflowY: "auto" }}>
+      <main className="relative flex-1 overflow-y-auto p-6">
         {children}
-        
-        <button
-          onClick={startListening}
-          style={{
-            position: "fixed", bottom: "30px", right: "30px",
-            width: "60px", height: "60px", borderRadius: "50%",
-            background: listening ? "#16a34a" : "#2563eb",
-            color: "white", border: "none", cursor: "pointer", fontSize: "24px"
+        <VoiceInput
+          onText={(text) => {
+            window.dispatchEvent(new CustomEvent("voice-command", { detail: { text } }));
           }}
-        >
-          🎤
-        </button>
+        />
       </main>
     </div>
   );

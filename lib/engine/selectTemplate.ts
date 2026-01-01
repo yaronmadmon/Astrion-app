@@ -1,11 +1,9 @@
-import { TEMPLATES, TemplateDefinition } from "./templates";
+import { templates } from "./templates";
+
+export type TemplateDefinition = any;
 
 export function selectTemplate(templateId: string): TemplateDefinition {
-  const template = TEMPLATES.find(t => t.id === templateId);
-
-  if (!template) {
-    throw new Error(`Unknown templateId: ${templateId}`);
-  }
-
+  const template = (templates as Record<string, any>)[templateId];
+  if (!template) throw new Error(`Unknown templateId: ${templateId}`);
   return template;
 }

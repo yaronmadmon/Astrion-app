@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Astrion (Voice-to-Software Factory)
+
+Astrion is an **Empathy-Driven Software Factory**: you speak an idea, Astrion analyzes confidence, asks clarifying questions when needed, and (when confident) creates an **app record + config JSON** that the UI renders deterministically.
+
+### Key architecture (“the laws”)
+
+- **Analyst layer**: `lib/analyst/analyzePrompt.ts` → scores confidence + suggests intent.
+- **Command/Foreman layer**: `lib/foreman/planBuild.ts` → emits only high-level JSON (no raw code).
+- **Engine/Builder layer**: deterministic templates + assembly; app UI renders from stored config JSON.
+- **Storage**: file-backed by default (`data/apps/*.json`) with an Airtable-ready path (env-gated).
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `http://localhost:3000` (landing)
+- `http://localhost:3000/builder` (voice/text builder)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### How building works (MVP)
 
-## Learn More
+- POST `{"prompt":"..."}` to `POST /api/ai/build`
+  - If low confidence → returns `{ mode: "dialogue", questions: [...] }`
+  - If high confidence → creates an app record in `data/apps/<id>.json` and returns `{ mode: "build", id, config, build }`
+- Visit `/apps/<id>` to see the config-driven app UI.
 
-To learn more about Next.js, take a look at the following resources:
+### Airtable (optional)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+If you want Airtable reads in the existing deploy route, set:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `AIRTABLE_API_KEY`
+- `AIRTABLE_BASE_ID`
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

@@ -13,7 +13,7 @@ export default function VoiceInput({
   function startListening() {
     if (!("webkitSpeechRecognition" in window)) return;
 
-    // @ts-ignore
+    // @ts-expect-error - webkitSpeechRecognition is a Chrome-only API
     const recognition = new window.webkitSpeechRecognition();
     recognition.lang = "en-US";
     recognition.interimResults = false;
@@ -33,19 +33,13 @@ export default function VoiceInput({
   return (
     <button
       onClick={startListening}
-      style={{
-        position: "fixed",
-        bottom: 20,
-        right: 20,
-        width: 56,
-        height: 56,
-        borderRadius: "50%",
-        background: listening ? "#16a34a" : "#2563eb",
-        color: "#fff",
-        border: "none",
-        cursor: "pointer",
-        fontSize: 22,
-      }}
+      className={[
+        "fixed bottom-6 right-6 z-50 grid h-14 w-14 place-items-center rounded-full text-xl",
+        "shadow-lg ring-1 ring-white/10 transition",
+        listening ? "bg-emerald-600 text-white" : "bg-blue-600 text-white",
+        "hover:brightness-110 active:scale-[0.98]",
+      ].join(" ")}
+      aria-label={listening ? "Listening" : "Start voice input"}
     >
       🎤
     </button>

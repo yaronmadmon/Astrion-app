@@ -1,5 +1,3 @@
-import { AppConfig } from "@/lib/contracts/appConfig"
-
 export type ValidationResult =
   | { ok: true }
   | { ok: false; error: string }

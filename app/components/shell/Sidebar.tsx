@@ -11,12 +11,17 @@ export default function Sidebar({ items }: { items: string[] }) {
   const appId = params.id;
 
   return (
-    <nav style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-      <Link href="/" style={{ color: "#38bdf8", textDecoration: "none", marginBottom: "20px", display: "block", fontSize: "14px", fontWeight: "bold" }}>
-        ← Back to Builder
+    <nav className="flex flex-col gap-1">
+      <Link
+        href="/builder"
+        className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-sky-300 hover:text-sky-200"
+      >
+        <span aria-hidden>←</span> Back to Builder
       </Link>
 
-      <div style={{ color: "#475569", fontSize: "11px", fontWeight: "bold", marginBottom: "10px" }}>MENU</div>
+      <div className="mb-1 text-[11px] font-semibold tracking-widest text-slate-500">
+        MENU
+      </div>
       
       {items.map((item) => {
         const slug = item.toLowerCase();
@@ -29,16 +34,12 @@ export default function Sidebar({ items }: { items: string[] }) {
             key={item} 
             href={href}
             // The Link component handles the click automatically
-            style={{ 
-              color: isActive ? "#38bdf8" : "#94a3b8", 
-              fontSize: "14px", 
-              padding: "10px 0", 
-              textDecoration: "none",
-              background: isActive ? "rgba(56, 189, 248, 0.1)" : "transparent",
-              borderRadius: "4px",
-              paddingLeft: "8px",
-              display: "block"
-            }}
+            className={[
+              "block rounded-lg px-3 py-2 text-sm transition",
+              isActive
+                ? "bg-sky-400/10 text-sky-300 ring-1 ring-sky-400/15"
+                : "text-slate-300 hover:bg-white/5 hover:text-slate-100",
+            ].join(" ")}
           >
             {item}
           </Link>
