@@ -20,36 +20,16 @@ export default function ClientShell({
       {children}
 
       {showVoice && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: 20,
-            left: 20,
-            width: 320,
-            background: "#0b1220",
-            padding: 12,
-            borderRadius: 10,
-            zIndex: 9999,
-          }}
-        >
+        <div className="fixed bottom-6 left-6 z-50 w-80 rounded-xl border border-slate-800 bg-slate-950/80 p-3 shadow-lg backdrop-blur">
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Speak or type…"
-            style={{
-              width: "100%",
-              height: 80,
-              background: "#020617",
-              color: "white",
-              borderRadius: 6,
-              padding: 8,
-              border: "1px solid #1e293b",
-              resize: "none",
-            }}
+            className="h-20 w-full resize-none rounded-lg border border-slate-800 bg-slate-950 px-2.5 py-2 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-sky-500/40"
           />
 
-          <div style={{ marginTop: 8 }}>
-            <VoiceButton onResult={setText} />
+          <div className="mt-2">
+            <VoiceButton onTranscript={setText} />
           </div>
         </div>
       )}

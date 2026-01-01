@@ -1,24 +1,27 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
-import { randomUUID } from 'crypto';
+import { createAppRecord, listAppIds } from '@/lib/storage/appRecords';
 
-const APPS_DIR = path.join(process.cwd(), 'data/apps');
+export const runtime = "nodejs";
 
 export async function GET() {
-  await fs.mkdir(APPS_DIR, { recursive: true });
-  const files = await fs.readdir(APPS_DIR);
-  return NextResponse.json(files.map(f => f.replace('.json', '')));
+  const ids = await listAppIds();
+  return NextResponse.json(ids);
 }
 
 export async function POST() {
-  const id = randomUUID();
-  const filePath = path.join(APPS_DIR, `${id}.json`);
+  const record = await createAppRecord({
+    prompt: "New App",
+    config: {
+      name: "New App",
+      pages: [{ id: "dashboard", title: "Dashboard", type: "dashboard" }],
+    },
+    build: {
+      mode: "build",
+      confidence: 0,
+      templateId: "genericApp",
+      variables: { appName: "New App" },
+    },
+  });
 
-  await fs.writeFile(
-    filePath,
-    JSON.stringify({ id, name: 'New App', createdAt: new Date() }, null, 2)
-  );
-
-  return NextResponse.json({ id }, { status: 201 });
+  return NextResponse.json({ id: record.id }, { status: 201 });
 }

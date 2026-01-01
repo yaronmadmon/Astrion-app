@@ -1,17 +1,25 @@
 import Airtable from "airtable";
 import { NextResponse } from "next/server";
 
-const apiKey = process.env.AIRTABLE_API_KEY;
-const baseId = process.env.AIRTABLE_BASE_ID;
+export const runtime = "nodejs";
 
-if (!apiKey || !baseId) {
-  throw new Error("Missing Airtable environment variables");
+function getBase() {
+  const apiKey = process.env.AIRTABLE_API_KEY;
+  const baseId = process.env.AIRTABLE_BASE_ID;
+  if (!apiKey || !baseId) return null;
+  return new Airtable({ apiKey }).base(baseId);
 }
-
-const base = new Airtable({ apiKey }).base(baseId);
 
 export async function GET(req) {
   try {
+    const base = getBase();
+    if (!base) {
+      return NextResponse.json(
+        { error: "Airtable not configured (missing AIRTABLE_API_KEY/AIRTABLE_BASE_ID)" },
+        { status: 503 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const table = searchParams.get("table");
 

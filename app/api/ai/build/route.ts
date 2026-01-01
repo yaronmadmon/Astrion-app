@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server";
+import { planBuild } from "@/lib/foreman/planBuild";
+import { validateAppConfig } from "@/lib/contracts/validator";
+import { createAppRecord } from "@/lib/storage/appRecords";
+
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
@@ -9,17 +14,47 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No prompt provided" }, { status: 400 });
     }
 
-    console.log("AI Received Prompt:", body.prompt);
+    const prompt = String(body.prompt);
+    const plan = planBuild(prompt);
 
-    // Generate a fake ID for now so the router has a destination
-    const mockAppId = "app_" + Math.random().toString(36).substring(7);
+    if (plan.mode === "dialogue") {
+      return NextResponse.json(
+        {
+          mode: "dialogue",
+          confidence: plan.dialogue.confidence,
+          questions: plan.dialogue.questions,
+          draftConfig: plan.draftConfig,
+        },
+        { status: 200 }
+      );
+    }
 
-    return NextResponse.json({ 
-      id: mockAppId, 
-      success: true 
-    }, { status: 200 }); // Status 200 = Green in terminal!
+    const validation = validateAppConfig(plan.config);
+    if (!validation.ok) {
+      return NextResponse.json(
+        { error: "Invalid config", details: validation.error },
+        { status: 422 }
+      );
+    }
 
-  } catch (error) {
+    const record = await createAppRecord({
+      prompt,
+      config: plan.config,
+      build: plan.command,
+    });
+
+    return NextResponse.json(
+      {
+        mode: "build",
+        id: record.id,
+        confidence: plan.command.confidence,
+        config: record.config,
+        build: record.build,
+      },
+      { status: 200 }
+    );
+
+  } catch (_error) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 500 });
   }
 }

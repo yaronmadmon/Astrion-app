@@ -2,29 +2,31 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import VoiceInput from "@/app/components/shell/VoiceInput";
+import { addHistoryItem, readHistory, type HistoryItem } from "@/lib/history";
 
 export default function BuilderPage() {
   // 1. Initialize hooks properly inside the component
   const router = useRouter(); 
   const [prompt, setPrompt] = useState("");
-  const [history, setHistory] = useState<any[]>([]); // This defines setHistory!
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [questions, setQuestions] = useState<string[]>([]);
+  const [confidence, setConfidence] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
 
   // 2. Load existing history when the page loads
   useEffect(() => {
-    const saved = localStorage.getItem("astrion_apps");
-    if (saved) {
-      try {
-        setHistory(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to load history", e);
-      }
-    }
+    setHistory(readHistory());
   }, []);
 
   const handleBuild = async () => {
     if (!prompt) return;
 
     try {
+      setLoading(true);
+      setQuestions([]);
+      setConfidence(null);
+
       const response = await fetch("/api/ai/build", {
         method: "POST",
         body: JSON.stringify({ prompt }),
@@ -32,69 +34,94 @@ export default function BuilderPage() {
 
       const data = await response.json();
 
-      if (data.id) {
-        // 3. Create the new item
-        const newApp = { 
-          id: data.id, 
-          prompt: prompt, 
-          createdAt: Date.now() 
-        };
+      if (data.mode === "dialogue") {
+        setConfidence(typeof data.confidence === "number" ? data.confidence : null);
+        setQuestions(Array.isArray(data.questions) ? data.questions : []);
+        return;
+      }
 
-        // 4. Manual Save (Ensures it works even if state is slow)
-        const existingRaw = localStorage.getItem("astrion_apps");
-        const existing = existingRaw ? JSON.parse(existingRaw) : [];
-        const updatedHistory = [newApp, ...existing];
-
-        // 5. WRITE TO DISK (This must happen before redirect)
-        localStorage.setItem("astrion_apps", JSON.stringify(updatedHistory));
-        
-        // 6. Update local state
-        setHistory(updatedHistory);
-
-        // 7. SOFT REDIRECT (Standard Next.js way)
+      if (data.mode === "build" && data.id) {
+        const next = addHistoryItem({
+          id: data.id,
+          prompt,
+          createdAt: new Date().toISOString(),
+        });
+        setHistory(next);
         router.push(`/apps/${data.id}`);
       }
     } catch (error) {
       console.error("Build failed:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#05070a", color: "white", padding: "40px" }}>
-      <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-        <h1 style={{ fontSize: "28px", color: "#38bdf8", marginBottom: "30px" }}>ASTRION BUILDER</h1>
-        
-        <div style={{ background: "#0a0f1a", padding: "20px", borderRadius: "12px", border: "1px solid #1e293b" }}>
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe your app..."
-            style={{ width: "100%", height: "80px", background: "#05070a", color: "white", padding: "10px", borderRadius: "8px", border: "1px solid #334155" }}
-          />
-          <button 
-            onClick={handleBuild}
-            style={{ width: "100%", marginTop: "15px", padding: "12px", background: "#38bdf8", color: "black", fontWeight: "bold", borderRadius: "8px", cursor: "pointer", border: "none" }}
-          >
-            Generate App
-          </button>
-        </div>
+    <div className="mx-auto w-full max-w-2xl px-6 py-10">
+      <h1 className="text-2xl font-semibold tracking-tight text-sky-300">
+        Astrion Builder
+      </h1>
+      <p className="mt-2 text-sm text-slate-400">
+        Describe your Micro‑SaaS. If you’re vague, Astrion will ask clarifying questions before building.
+      </p>
 
-        <h2 style={{ marginTop: "40px", fontSize: "18px", color: "#94a3b8" }}>Recent Apps</h2>
-        <div style={{ marginTop: "15px", display: "flex", flexDirection: "column", gap: "10px" }}>
-          {history.length > 0 ? history.map((app) => (
-            <div 
-              key={app.id} 
-              onClick={() => router.push(`/apps/${app.id}`)}
-              style={{ padding: "15px", background: "#0a0f1a", border: "1px solid #1e293b", borderRadius: "10px", cursor: "pointer" }}
-            >
-              <strong>{app.prompt}</strong>
-              <div style={{ fontSize: "11px", color: "#475569" }}>ID: {app.id}</div>
+      <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-950/40 p-5 shadow-sm">
+        <label className="text-xs font-medium text-slate-400">Your idea</label>
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder='e.g. "A CRM for solar installers to track leads, calls, and quotes"'
+          className="mt-2 h-24 w-full resize-none rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 outline-none focus:ring-2 focus:ring-sky-500/40"
+        />
+
+        <button
+          onClick={handleBuild}
+          disabled={loading || !prompt.trim()}
+          className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-sky-400 px-4 py-2.5 text-sm font-semibold text-slate-950 disabled:opacity-50"
+        >
+          {loading ? "Working..." : "Build"}
+        </button>
+
+        {confidence !== null && (
+          <div className="mt-3 text-xs text-slate-400">
+            Confidence: <span className="font-medium text-slate-200">{Math.round(confidence * 100)}%</span>
+          </div>
+        )}
+
+        {questions.length > 0 && (
+          <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950 p-4">
+            <div className="text-sm font-semibold text-slate-100">Guiding questions</div>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-300">
+              {questions.map((q) => (
+                <li key={q}>{q}</li>
+              ))}
+            </ul>
+            <div className="mt-3 text-xs text-slate-500">
+              Answer these in one sentence and press Build again.
             </div>
-          )) : (
-            <p style={{ color: "#475569" }}>No saved apps found.</p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
+
+      <h2 className="mt-10 text-sm font-semibold text-slate-300">Recent apps</h2>
+      <div className="mt-3 flex flex-col gap-2">
+        {history.length > 0 ? (
+          history.map((app) => (
+            <button
+              key={app.id}
+              onClick={() => router.push(`/apps/${app.id}`)}
+              className="w-full rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-3 text-left hover:bg-slate-950"
+            >
+              <div className="text-sm font-medium text-slate-100">{app.prompt}</div>
+              <div className="mt-1 text-xs text-slate-500">{app.id}</div>
+            </button>
+          ))
+        ) : (
+          <div className="text-sm text-slate-500">No saved apps yet.</div>
+        )}
+      </div>
+
+      <VoiceInput onText={(text) => setPrompt(text)} />
     </div>
   );
 }
