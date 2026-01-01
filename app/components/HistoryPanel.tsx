@@ -5,17 +5,12 @@ import Link from "next/link";
 import { HISTORY_EVENT, type HistoryItem, readHistory } from "@/lib/history";
 
 export default function HistoryPanel() {
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [hasHydrated, setHasHydrated] = useState(false);
+  const [history, setHistory] = useState<HistoryItem[]>(() => readHistory());
 
   useEffect(() => {
-    setHasHydrated(true);
-
     const refresh = () => {
       setHistory(readHistory());
     };
-
-    refresh();
 
     // Updates from other tabs/windows
     const onStorage = (e: StorageEvent) => {
@@ -32,9 +27,6 @@ export default function HistoryPanel() {
       window.removeEventListener(HISTORY_EVENT, onLocalHistoryChange);
     };
   }, []);
-
-  // Avoid flicker/mismatch by only rendering history after hydration.
-  if (!hasHydrated) return null;
 
   return (
     <section style={{ marginTop: 16 }}>
